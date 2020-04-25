@@ -6,8 +6,9 @@ let xml2js          = require( "xml2js" );
 const isDebugEnable = true;
 const targetElement = "make-everything-ok-button";
 
-//
+// Promisify some functions
 fs.readFile = util.promisify( fs.readFile );
+fs.writeFile = util.promisify( fs.writeFile );
 xml2js.parseString = util.promisify( xml2js.parseString );
 
 const log = ( line ) => {
@@ -34,7 +35,7 @@ const compareElements = ( element1, element2 ) => {
 
 // Go through the entire XML file recursively, making comparison of each element with the target element. 
 // We will keep the one which have more coincidences with the criteria
-const analizeElement2 = ( targetElement, elementName, elementValue, finalMessage, partialResult ) => {
+const analizeElement2 = ( targetElement, elementName, elementValue, result, partialResult ) => {
 
     if( typeof elementValue == "string" || typeof elementValue == "number"  || typeof elementValue == "boolean"  ){
         
@@ -46,7 +47,7 @@ const analizeElement2 = ( targetElement, elementName, elementValue, finalMessage
         //log( "Found an array " );
         // If we found an array, wi will loop over the entire one, looking for objects to compare
         for( var elementNum in elementValue )
-            analizeElement2( targetElement, elementName, elementValue[ elementNum ], finalMessage, partialResult + "[" + elementNum + "]" );
+            analizeElement2( targetElement, elementName, elementValue[ elementNum ], result, partialResult + "[" + elementNum + "]" );
         
     } else if( elementValue instanceof Object ){
         
@@ -55,16 +56,16 @@ const analizeElement2 = ( targetElement, elementName, elementValue, finalMessage
         // We will keep the one which have more score as the search result
 
         let coincidences = compareElements( targetElement, elementValue );
-        let { coincidences : maxCoincidences = 0 } = { finalMessage };
+        let { coincidences : maxCoincidences = 0 } = { result };
 
         if( maxCoincidences < coincidences ){
-            finalMessage.coincidences   = coincidences;
-            finalMessage.path           = partialResult;
+            result.coincidences   = coincidences;
+            result.path           = partialResult;
         }
         
         // Then, we will continue looping over the rest of the elements of this object
         for( var subElementName in elementValue )
-            analizeElement2( targetElement, subElementName, elementValue[ subElementName ], finalMessage, ( elementName !== undefined ? partialResult + "." + subElementName : subElementName ) );
+            analizeElement2( targetElement, subElementName, elementValue[ subElementName ], result, ( elementName !== undefined ? partialResult + "." + subElementName : subElementName ) );
                
     } else {
            
@@ -129,6 +130,8 @@ const findSpecificElement = async ( elementId, originFilePath, toCompareFilePath
 
         let { path = null } = result;
         log( `Path found: ${path}` );
+        if( path )
+            await fs.writeFile( `results/${new Date().getTime()}.log`, JSON.stringify( result ) );
 
     } catch( error ){
         log( error );
