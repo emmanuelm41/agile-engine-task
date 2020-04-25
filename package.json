@@ -1,0 +1,22 @@
+{
+  "name": "agile-engine-test",
+  "version": "1.0.0",
+  "description": "Agile Engine online test",
+  "main": "app.js",
+  "scripts": {
+    "test": "nodemon app.js"
+  },
+  "keywords": [
+    "Agile",
+    "Engine",
+    "Test",
+    "Emmanuel",
+    "Murano"
+  ],
+  "author": "Emmanuel Murano",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "nodemon": "^2.0.3"
+  }
+}
