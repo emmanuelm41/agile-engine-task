@@ -87,7 +87,7 @@ const findSpecificElement = async ( elementId, originFilePath, toCompareFilePath
     log( `elementId: ${elementId} originFilePath: ${originFilePath} toCompareFilePath: ${toCompareFilePath}` );
 
     if( ! fs.existsSync( originFilePath ) || ! fs.existsSync( toCompareFilePath ) ){
-        console.log( null );
+        log( `Path found: ${null}` );
         return 0;
     }
 
@@ -102,7 +102,7 @@ const findSpecificElement = async ( elementId, originFilePath, toCompareFilePath
         const originFileDOM = new JSDOM(originFile);
         const button = originFileDOM.window.document.getElementById( elementId );
         if( ! button ){
-            console.log( null );
+            log( `Path found: ${null}` );
             return 0;
         }
 
@@ -120,10 +120,15 @@ const findSpecificElement = async ( elementId, originFilePath, toCompareFilePath
         log( `Attributes String: ${array.map(attr => `${attr.name} = ${attr.value}`).join(", ")}}` );
         log( `Attributes JSON: ${JSON.stringify( valuesToCompare )}` );
 
+        // Parse the toCompare file from XML string to JSON
         const toCompareFileJSON = await xml2js.parseString( toCompareFile );
-        const toCompareFileLinearString = {};
-        analizeElement2( valuesToCompare, undefined, toCompareFileJSON, toCompareFileLinearString, "" );
-        log( toCompareFileLinearString );
+
+        let result = { coincidences: 0 };
+        // Loop over the JSON making comparisons with every element
+        analizeElement2( valuesToCompare, undefined, toCompareFileJSON, result, "" );
+
+        let { path = null } = result;
+        log( `Path found: ${path}` );
 
     } catch( error ){
         log( error );
